@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  server:
+    build: .
+    ports:
+      - "50051:50051"
+    depends_on:
+      - redis
+
+  client:
+    build: .
+    depends_on:
+      - server
+
+  redis:
+    image: redis
