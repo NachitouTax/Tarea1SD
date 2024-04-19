@@ -4,7 +4,7 @@ import cache_pb2
 import cache_pb2_grpc
 import redis
 
-# Configuración de Redis
+# Configurar la conexión a Redis
 r = redis.Redis(host='redis', port=6379)
 
 class CacheServicer(cache_pb2_grpc.CacheServicer):
