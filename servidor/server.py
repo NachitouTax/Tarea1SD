@@ -3,17 +3,49 @@ from concurrent import futures
 import cache_pb2
 import cache_pb2_grpc
 import redis
+import psycopg2
 
 # Configurar la conexión a Redis
 r = redis.Redis(host='redis', port=6379)
 
+# Configurar la conexión a PostgreSQL
+conn = psycopg2.connect(
+    host="postgres",
+    database="mydatabase",
+    user="myuser",
+    password="mypassword"
+)
+cursor = conn.cursor()
+
 class CacheServicer(cache_pb2_grpc.CacheServicer):
     def Get(self, request, context):
-        value = r.get(request.key)
-        return cache_pb2.GetResponse(value=value.decode('utf-8') if value else '')
+        key = request.key
+
+        # Intentar obtener el valor de Redis
+        value = r.get(key)
+        if value:
+            return cache_pb2.GetResponse(value=value.decode('utf-8'))
+
+        # Si el valor no está en Redis, obtenerlo de PostgreSQL
+        cursor.execute("SELECT value FROM mytable WHERE key = %s", (key,))
+        result = cursor.fetchone()
+        if result:
+            value = result[0]
+            # Almacenar el valor en Redis
+            r.set(key, value)
+            return cache_pb2.GetResponse(value=value)
+        else:
+            return cache_pb2.GetResponse(value='')
 
     def Set(self, request, context):
-        r.set(request.key, request.value)
+        key = request.key
+        value = request.value
+
+        # Almacenar el valor en Redis y PostgreSQL
+        r.set(key, value)
+        cursor.execute("INSERT INTO mytable (key, value) VALUES (%s, %s)", (key, value))
+        conn.commit()
+
         return cache_pb2.SetResponse(success=True)
 
 def serve():
