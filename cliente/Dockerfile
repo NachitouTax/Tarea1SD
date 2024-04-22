@@ -1,17 +1,10 @@
-version: '3'
+FROM python:3.9-slim
 
-services:
-  server:
-    build: .
-    ports:
-      - "50051:50051"
-    depends_on:
-      - redis
+COPY ./cliente /home/app
 
-  client:
-    build: .
-    depends_on:
-      - server
+WORKDIR /home/app
 
-  redis:
-    image: redis
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
+
+CMD ["python3.9", "-u", "client.py"]

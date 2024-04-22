@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+message EmptyMessage {}
+message EmptyMessageresponse {
+  string ack = 1;
+}
+
+service CacheService {
+  rpc Pingpacientes(EmptyMessage) returns (EmptyMessageresponse) {}
+}
+
+message GetRequest {
+  string key = 1;
+}
+
+message GetResponse {
+  string value = 1;
+}

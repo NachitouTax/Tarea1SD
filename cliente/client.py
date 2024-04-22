@@ -2,18 +2,25 @@ import grpc
 import cache_pb2
 import cache_pb2_grpc
 import redis
+import psycopg2
+
 
 # Configurar la conexión a Redis
 r = redis.Redis(host='redis', port=6379)
 
 def run():
+    server_address='localhost:50051'
+    
     with grpc.insecure_channel('server:50051') as channel:
-        stub = cache_pb2_grpc.CacheStub(channel)
+        channel = grpc.insecure_channel(server_address)
+
+
+        stub = cache_pb2_grpc.CacheServiceStub(channel)
 
         # Simular operaciones de lectura y escritura
         key = 'clave_ejemplo'
         value = 'valor_ejemplo'
-
+        
         # Intentar obtener el valor de Redis
         cached_value = r.get(key)
         if cached_value:
